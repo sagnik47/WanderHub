@@ -4,11 +4,14 @@ import { getPlaceDetails, getPhotoUrl } from "@/lib/google-places"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    // Handle both Next.js 15 (Promise) and older versions
+    const resolvedParams = params instanceof Promise ? await params : params
+    
     const destination = await prisma.destination.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       include: {
         hotels: {
           orderBy: { price: "asc" },
@@ -62,8 +65,8 @@ export async function GET(
       photos,
       placeDetails: placeDetails
         ? {
-            reviews: placeDetails.reviews?.slice(0, 5),
-            openingHours: placeDetails.opening_hours?.weekday_text,
+            reviews: placeDetails.reviews?.slice(0, 5) || [],
+            openingHours: placeDetails.opening_hours?.weekday_text || [],
           }
         : null,
     })

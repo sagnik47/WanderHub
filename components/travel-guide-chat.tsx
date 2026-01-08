@@ -64,21 +64,24 @@ export function TravelGuideChat() {
           { role: "assistant", content: data.message },
         ])
       } else {
+        console.error("Travel guide API error:", data)
+        const errorMsg = data.error || "Sorry, I encountered an error. Please try again."
         setMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            content: "Sorry, I encountered an error. Please try again.",
+            content: `Sorry, I encountered an error: ${errorMsg}. Please check your API configuration and try again.`,
           },
         ])
       }
     } catch (error) {
       console.error("Travel guide chat error:", error)
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "Sorry, I encountered an error. Please try again.",
+          content: `Sorry, I encountered an error: ${errorMessage}. Please check your network connection and try again.`,
         },
       ])
     } finally {
@@ -157,8 +160,8 @@ export function TravelGuideChat() {
             </CardHeader>
 
             {!isMinimized && (
-              <CardContent className="flex-1 flex flex-col p-4 bg-white">
-                <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+              <CardContent className="flex-1 flex flex-col p-4 bg-white overflow-hidden">
+                <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 min-h-0">
                   {messages.map((message, index) => (
                     <div
                       key={index}

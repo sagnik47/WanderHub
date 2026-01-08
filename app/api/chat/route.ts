@@ -44,14 +44,31 @@ export async function POST(request: NextRequest) {
         : undefined,
     }
 
+    // Validate messages
+    if (messages.length === 0) {
+      return NextResponse.json(
+        { error: "At least one message is required" },
+        { status: 400 }
+      )
+    }
+
     // Generate AI response
     const response = await generateChatResponse(messages, destinationContext)
 
     return NextResponse.json({ message: response })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Chat API error:", error)
+    const errorMessage = error?.message || "Failed to generate chat response"
+    console.error("Error details:", {
+      message: errorMessage,
+      stack: error?.stack,
+      name: error?.name,
+    })
     return NextResponse.json(
-      { error: "Failed to generate chat response" },
+      { 
+        error: errorMessage,
+        details: process.env.NODE_ENV === "development" ? error?.stack : undefined
+      },
       { status: 500 }
     )
   }

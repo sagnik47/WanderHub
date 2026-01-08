@@ -223,7 +223,7 @@ export default function DestinationPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {destination.photos.slice(1, 7).map((photo, index) => (
+                    {(destination.photos?.slice(1, 7) || []).map((photo, index) => (
                       <div key={index} className="relative h-48 rounded-lg overflow-hidden">
                         <Image
                           src={photo}
@@ -246,7 +246,7 @@ export default function DestinationPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {destination.hotels.map((hotel) => (
+                    {(destination.hotels || []).map((hotel) => (
                       <div
                         key={hotel.id}
                         className="flex items-center justify-between p-4 border rounded-lg"
@@ -288,7 +288,7 @@ export default function DestinationPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {destination.placeDetails.reviews.map((review, index) => (
+                    {(destination.placeDetails?.reviews || []).map((review, index) => (
                       <div key={index} className="border-b pb-4 last:border-0">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="font-semibold">{review.author_name}</span>
@@ -336,7 +336,7 @@ export default function DestinationPage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm">
-                    {destination.openingHours.map((hours, index) => (
+                    {(destination.openingHours || []).map((hours, index) => (
                       <li key={index} className="text-gray-700">
                         {hours}
                       </li>

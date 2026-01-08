@@ -57,38 +57,104 @@ Now, help the user with their questions about ${destination.name}!`
 
 /**
  * Generate a chat response using Gemini AI
+ * Using gemini-1.5-flash model compatible with Google AI Studio free tier
  */
 export async function generateChatResponse(
   messages: Array<{ role: "user" | "assistant"; content: string }>,
   destination: DestinationContext
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" })
-
-  const systemPrompt = createSystemPrompt(destination)
-
-  // Convert messages to Gemini format
-  const chatHistory = messages
-    .slice(0, -1) // All messages except the last one
-    .map((msg) => ({
-      role: msg.role === "user" ? "user" : "model",
-      parts: [{ text: msg.content }],
-    }))
-
-  const currentMessage = messages[messages.length - 1]
-
   try {
-    // Start a chat session with history
-    const chat = model.startChat({
-      history: chatHistory,
-      systemInstruction: systemPrompt,
-    })
+    // Initialize model with exact name for Google AI Studio free tier
+    // Try gemini-pro first (most reliable for free tier), fallback to gemini-1.5-flash
+    let model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    
+    const systemPrompt = createSystemPrompt(destination)
 
-    const result = await chat.sendMessage(currentMessage.content)
-    const response = await result.response
-    return response.text()
-  } catch (error) {
-    console.error("Gemini API error:", error)
-    throw new Error("Failed to generate chat response")
+    // Filter out empty messages
+    const validMessages = messages.filter(msg => msg.content && msg.content.trim())
+    if (validMessages.length === 0) {
+      throw new Error("No valid messages provided")
+    }
+
+    const currentMessage = validMessages[validMessages.length - 1]
+    if (currentMessage.role !== "user") {
+      throw new Error("Last message must be from user")
+    }
+
+    // Build conversation context from previous messages
+    const previousMessages = validMessages.slice(0, -1).filter(msg => msg.content && msg.content.trim())
+    
+    let conversationContext = ""
+    if (previousMessages.length > 0) {
+      conversationContext = previousMessages
+        .map((msg) => {
+          const role = msg.role === "user" ? "User" : "Assistant"
+          return `${role}: ${msg.content}`
+        })
+        .join("\n\n")
+    }
+
+    // Build full prompt with system instruction and conversation history
+    let fullPrompt = systemPrompt
+    if (conversationContext) {
+      fullPrompt += `\n\nPrevious conversation:\n${conversationContext}`
+    }
+    fullPrompt += `\n\nUser: ${currentMessage.content}\n\nAssistant:`
+
+    // Use generateContent - simpler and more reliable for free tier
+    try {
+      console.log("Calling Gemini API with model: gemini-pro")
+      const result = await model.generateContent(fullPrompt)
+      const response = await result.response
+      const text = response.text()
+      
+      if (!text || text.trim().length === 0) {
+        throw new Error("Empty response from Gemini API")
+      }
+      
+      return text
+    } catch (modelError: any) {
+      // If gemini-pro fails, try gemini-1.5-flash
+      if (modelError.message?.includes("404") || modelError.message?.includes("not found")) {
+        console.log("gemini-pro not available, trying gemini-1.5-flash")
+        model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+        const result = await model.generateContent(fullPrompt)
+        const response = await result.response
+        const text = response.text()
+        
+        if (!text || text.trim().length === 0) {
+          throw new Error("Empty response from Gemini API")
+        }
+        
+        return text
+      }
+      throw modelError
+    }
+  } catch (error: any) {
+    // Log full error for debugging
+    console.error("Gemini API error details:", {
+      message: error?.message,
+      code: error?.code,
+      status: error?.status,
+      statusText: error?.statusText,
+      stack: error?.stack,
+    })
+    
+    const errorMessage = error?.message || String(error)
+    
+    if (errorMessage.includes("API key") || errorMessage.includes("403") || errorMessage.includes("401")) {
+      throw new Error("Invalid or missing GOOGLE_GEMINI_API_KEY. Please check your API key.")
+    }
+    
+    if (errorMessage.includes("404") || errorMessage.includes("not found") || errorMessage.includes("models/")) {
+      throw new Error(`Model error: ${errorMessage}. Ensure you're using Google AI Studio (not Vertex AI). Try using "gemini-pro" model which is most compatible with free tier.`)
+    }
+    
+    if (errorMessage.includes("quota") || errorMessage.includes("429")) {
+      throw new Error("API quota exceeded. Please check your usage limits.")
+    }
+    
+    throw new Error(`Gemini API error: ${errorMessage}`)
   }
 }
 
@@ -119,36 +185,107 @@ Now, help the user with their travel questions!`
 
 /**
  * Generate a general travel guide chat response using Gemini AI
+ * Using gemini-1.5-flash model compatible with Google AI Studio free tier
  */
 export async function generateGeneralTravelResponse(
   messages: Array<{ role: "user" | "assistant"; content: string }>
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" })
-  const systemPrompt = createGeneralTravelPrompt()
-
-  // Convert messages to Gemini format
-  const chatHistory = messages
-    .slice(0, -1) // All messages except the last one
-    .map((msg) => ({
-      role: msg.role === "user" ? "user" : "model",
-      parts: [{ text: msg.content }],
-    }))
-
-  const currentMessage = messages[messages.length - 1]
-
   try {
-    // Start a chat session with history
-    const chat = model.startChat({
-      history: chatHistory,
-      systemInstruction: systemPrompt,
-    })
+    // Initialize model with exact name for Google AI Studio free tier
+    // Try gemini-pro first (most reliable for free tier), fallback to gemini-1.5-flash
+    let model = genAI.getGenerativeModel({ model: "gemini-pro" })
 
-    const result = await chat.sendMessage(currentMessage.content)
-    const response = await result.response
-    return response.text()
-  } catch (error) {
-    console.error("Gemini API error:", error)
-    throw new Error("Failed to generate travel guide response")
+    const systemPrompt = createGeneralTravelPrompt()
+
+    // Filter out empty messages
+    const validMessages = messages.filter(msg => msg.content && msg.content.trim())
+    if (validMessages.length === 0) {
+      throw new Error("No valid messages provided")
+    }
+
+    // The last message should be from the user
+    const currentMessage = validMessages[validMessages.length - 1]
+    if (currentMessage.role !== "user") {
+      throw new Error("Last message must be from user")
+    }
+
+    // Build conversation context from previous messages
+    const previousMessages = validMessages.slice(0, -1).filter(msg => msg.content && msg.content.trim())
+    
+    // Remove leading assistant messages - we'll include them in the context instead
+    let conversationContext = ""
+    if (previousMessages.length > 0) {
+      conversationContext = previousMessages
+        .map((msg) => {
+          const role = msg.role === "user" ? "User" : "Assistant"
+          return `${role}: ${msg.content}`
+        })
+        .join("\n\n")
+    }
+
+    // Build full prompt with system instruction and conversation history
+    let fullPrompt = systemPrompt
+    if (conversationContext) {
+      fullPrompt += `\n\nPrevious conversation:\n${conversationContext}`
+    }
+    fullPrompt += `\n\nUser: ${currentMessage.content}\n\nAssistant:`
+
+    // Use generateContent - simpler and more reliable for free tier
+    try {
+      console.log("Calling Gemini API with model: gemini-pro")
+      const result = await model.generateContent(fullPrompt)
+      const response = await result.response
+      const text = response.text()
+      
+      if (!text || text.trim().length === 0) {
+        throw new Error("Empty response from Gemini API")
+      }
+      
+      return text
+    } catch (modelError: any) {
+      // If gemini-pro fails, try gemini-1.5-flash
+      if (modelError.message?.includes("404") || modelError.message?.includes("not found")) {
+        console.log("gemini-pro not available, trying gemini-1.5-flash")
+        model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+        const result = await model.generateContent(fullPrompt)
+        const response = await result.response
+        const text = response.text()
+        
+        if (!text || text.trim().length === 0) {
+          throw new Error("Empty response from Gemini API")
+        }
+        
+        return text
+      }
+      throw modelError
+    }
+  } catch (error: any) {
+    // Log full error for debugging
+    console.error("Gemini API error details:", {
+      message: error?.message,
+      code: error?.code,
+      status: error?.status,
+      statusText: error?.statusText,
+      stack: error?.stack,
+    })
+    
+    // Check for specific error types
+    const errorMessage = error?.message || String(error)
+    
+    if (errorMessage.includes("API key") || errorMessage.includes("403") || errorMessage.includes("401")) {
+      throw new Error("Invalid or missing GOOGLE_GEMINI_API_KEY. Please check your API key in the .env file.")
+    }
+    
+    if (errorMessage.includes("404") || errorMessage.includes("not found") || errorMessage.includes("models/")) {
+      throw new Error(`Model error: ${errorMessage}. Ensure you're using Google AI Studio (not Vertex AI). Try using "gemini-pro" model which is most compatible with free tier.`)
+    }
+    
+    if (errorMessage.includes("quota") || errorMessage.includes("429")) {
+      throw new Error("API quota exceeded. Please check your Gemini API usage limits.")
+    }
+    
+    // Return the actual error message for better debugging
+    throw new Error(`Gemini API error: ${errorMessage}`)
   }
 }
 
