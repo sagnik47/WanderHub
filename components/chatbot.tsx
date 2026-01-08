@@ -88,31 +88,33 @@ export function ChatBot({ destinationId, onClose }: ChatBotProps) {
 
   return (
     <div className="fixed bottom-4 right-4 w-96 h-[600px] z-50 shadow-2xl rounded-lg">
-      <Card className="h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            <CardTitle>Travel Assistant</CardTitle>
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 py-3 flex-shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <MessageSquare className="h-5 w-5 flex-shrink-0" />
+            <CardTitle className="text-base truncate">Travel Assistant</CardTitle>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} className="flex-shrink-0">
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col p-4 overflow-hidden">
-          <div className="flex-1 overflow-y-auto space-y-4 mb-4 min-h-0">
+        <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-3 px-4 py-2 min-h-0">
             {messages.map((message, index) => (
               <div
                 key={index}
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
+                  className={`max-w-[85%] rounded-lg p-3 break-words ${
                     message.role === "user"
-                      ? "bg-primary-600 text-white"
+                      ? "bg-blue-600 text-white"
                       : "bg-gray-100 text-gray-900"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                    {message.content}
+                  </p>
                 </div>
               </div>
             ))}
@@ -125,15 +127,16 @@ export function ChatBot({ destinationId, onClose }: ChatBotProps) {
             )}
             <div ref={messagesEndRef} />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 p-4 border-t bg-white flex-shrink-0">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSend()}
               placeholder="Ask about this destination..."
               disabled={loading}
+              className="flex-1 min-w-0"
             />
-            <Button onClick={handleSend} disabled={loading || !input.trim()}>
+            <Button onClick={handleSend} disabled={loading || !input.trim()} className="flex-shrink-0">
               <Send className="h-4 w-4" />
             </Button>
           </div>

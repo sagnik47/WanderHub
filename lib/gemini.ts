@@ -57,16 +57,15 @@ Now, help the user with their questions about ${destination.name}!`
 
 /**
  * Generate a chat response using Gemini AI
- * Using gemini-1.5-flash model compatible with Google AI Studio free tier
+ * Using gemini-pro model which is most compatible with Google AI Studio free tier
  */
 export async function generateChatResponse(
   messages: Array<{ role: "user" | "assistant"; content: string }>,
   destination: DestinationContext
 ): Promise<string> {
   try {
-    // Initialize model with exact name for Google AI Studio free tier
-    // Try gemini-pro first (most reliable for free tier), fallback to gemini-1.5-flash
-    let model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    // Use gemini-pro which is the most stable model for Google AI Studio free tier
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
     
     const systemPrompt = createSystemPrompt(destination)
 
@@ -101,35 +100,17 @@ export async function generateChatResponse(
     }
     fullPrompt += `\n\nUser: ${currentMessage.content}\n\nAssistant:`
 
-    // Use generateContent - simpler and more reliable for free tier
-    try {
-      console.log("Calling Gemini API with model: gemini-pro")
-      const result = await model.generateContent(fullPrompt)
-      const response = await result.response
-      const text = response.text()
-      
-      if (!text || text.trim().length === 0) {
-        throw new Error("Empty response from Gemini API")
-      }
-      
-      return text
-    } catch (modelError: any) {
-      // If gemini-pro fails, try gemini-1.5-flash
-      if (modelError.message?.includes("404") || modelError.message?.includes("not found")) {
-        console.log("gemini-pro not available, trying gemini-1.5-flash")
-        model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-        const result = await model.generateContent(fullPrompt)
-        const response = await result.response
-        const text = response.text()
-        
-        if (!text || text.trim().length === 0) {
-          throw new Error("Empty response from Gemini API")
-        }
-        
-        return text
-      }
-      throw modelError
+    // Use generateContent with proper error handling
+    console.log("Calling Gemini API with model: gemini-pro")
+    const result = await model.generateContent(fullPrompt)
+    const response = await result.response
+    const text = response.text()
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error("Empty response from Gemini API")
     }
+    
+    return text.trim()
   } catch (error: any) {
     // Log full error for debugging
     console.error("Gemini API error details:", {
@@ -147,7 +128,7 @@ export async function generateChatResponse(
     }
     
     if (errorMessage.includes("404") || errorMessage.includes("not found") || errorMessage.includes("models/")) {
-      throw new Error(`Model error: ${errorMessage}. Ensure you're using Google AI Studio (not Vertex AI). Try using "gemini-pro" model which is most compatible with free tier.`)
+      throw new Error(`Model error: ${errorMessage}. Ensure you're using Google AI Studio (not Vertex AI). The gemini-pro model should be available for free tier users.`)
     }
     
     if (errorMessage.includes("quota") || errorMessage.includes("429")) {
@@ -185,15 +166,14 @@ Now, help the user with their travel questions!`
 
 /**
  * Generate a general travel guide chat response using Gemini AI
- * Using gemini-1.5-flash model compatible with Google AI Studio free tier
+ * Using gemini-pro model compatible with Google AI Studio free tier
  */
 export async function generateGeneralTravelResponse(
   messages: Array<{ role: "user" | "assistant"; content: string }>
 ): Promise<string> {
   try {
-    // Initialize model with exact name for Google AI Studio free tier
-    // Try gemini-pro first (most reliable for free tier), fallback to gemini-1.5-flash
-    let model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    // Use gemini-pro which is the most stable model for Google AI Studio free tier
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
 
     const systemPrompt = createGeneralTravelPrompt()
 
@@ -212,7 +192,6 @@ export async function generateGeneralTravelResponse(
     // Build conversation context from previous messages
     const previousMessages = validMessages.slice(0, -1).filter(msg => msg.content && msg.content.trim())
     
-    // Remove leading assistant messages - we'll include them in the context instead
     let conversationContext = ""
     if (previousMessages.length > 0) {
       conversationContext = previousMessages
@@ -230,35 +209,17 @@ export async function generateGeneralTravelResponse(
     }
     fullPrompt += `\n\nUser: ${currentMessage.content}\n\nAssistant:`
 
-    // Use generateContent - simpler and more reliable for free tier
-    try {
-      console.log("Calling Gemini API with model: gemini-pro")
-      const result = await model.generateContent(fullPrompt)
-      const response = await result.response
-      const text = response.text()
-      
-      if (!text || text.trim().length === 0) {
-        throw new Error("Empty response from Gemini API")
-      }
-      
-      return text
-    } catch (modelError: any) {
-      // If gemini-pro fails, try gemini-1.5-flash
-      if (modelError.message?.includes("404") || modelError.message?.includes("not found")) {
-        console.log("gemini-pro not available, trying gemini-1.5-flash")
-        model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-        const result = await model.generateContent(fullPrompt)
-        const response = await result.response
-        const text = response.text()
-        
-        if (!text || text.trim().length === 0) {
-          throw new Error("Empty response from Gemini API")
-        }
-        
-        return text
-      }
-      throw modelError
+    // Use generateContent with proper error handling
+    console.log("Calling Gemini API with model: gemini-pro")
+    const result = await model.generateContent(fullPrompt)
+    const response = await result.response
+    const text = response.text()
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error("Empty response from Gemini API")
     }
+    
+    return text.trim()
   } catch (error: any) {
     // Log full error for debugging
     console.error("Gemini API error details:", {
@@ -277,7 +238,7 @@ export async function generateGeneralTravelResponse(
     }
     
     if (errorMessage.includes("404") || errorMessage.includes("not found") || errorMessage.includes("models/")) {
-      throw new Error(`Model error: ${errorMessage}. Ensure you're using Google AI Studio (not Vertex AI). Try using "gemini-pro" model which is most compatible with free tier.`)
+      throw new Error(`Model error: ${errorMessage}. Ensure you're using Google AI Studio (not Vertex AI). The gemini-pro model should be available for free tier users.`)
     }
     
     if (errorMessage.includes("quota") || errorMessage.includes("429")) {
@@ -338,5 +299,3 @@ Return ONLY a JSON array of destination names in order of recommendation, like: 
       .map((d) => d.name)
   }
 }
-
-

@@ -161,7 +161,7 @@ export function TravelGuideChat() {
 
             {!isMinimized && (
               <CardContent className="flex-1 flex flex-col p-4 bg-white overflow-hidden">
-                <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 min-h-0">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-3 mb-4 pr-2 min-h-0">
                   {messages.map((message, index) => (
                     <div
                       key={index}
@@ -172,13 +172,13 @@ export function TravelGuideChat() {
                       }`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-lg p-3 ${
+                        className={`max-w-[85%] rounded-lg p-3 break-words ${
                           message.role === "user"
                             ? "bg-primary-600 text-white"
                             : "bg-gray-100 text-gray-900"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">
+                        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
                           {message.content}
                         </p>
                       </div>
@@ -193,7 +193,7 @@ export function TravelGuideChat() {
                   )}
                   <div ref={messagesEndRef} />
                 </div>
-                <div className="flex gap-2 pt-2 border-t">
+                <div className="flex gap-2 pt-2 border-t flex-shrink-0">
                   <Input
                     ref={inputRef}
                     value={input}
@@ -201,12 +201,12 @@ export function TravelGuideChat() {
                     onKeyPress={handleKeyPress}
                     placeholder="Ask about travel destinations, tips, or planning..."
                     disabled={loading}
-                    className="flex-1"
+                    className="flex-1 min-w-0"
                   />
                   <Button
                     onClick={handleSend}
                     disabled={loading || !input.trim()}
-                    className="bg-primary-600 hover:bg-primary-700"
+                    className="bg-primary-600 hover:bg-primary-700 flex-shrink-0"
                   >
                     {loading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
