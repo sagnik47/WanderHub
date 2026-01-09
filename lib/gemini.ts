@@ -57,15 +57,15 @@ Now, help the user with their questions about ${destination.name}!`
 
 /**
  * Generate a chat response using Gemini AI
- * Using gemini-pro model which is most compatible with Google AI Studio free tier
+ * Using gemini-1.5-flash model which is available in Google AI Studio free tier
  */
 export async function generateChatResponse(
   messages: Array<{ role: "user" | "assistant"; content: string }>,
   destination: DestinationContext
 ): Promise<string> {
   try {
-    // Use gemini-pro which is the most stable model for Google AI Studio free tier
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    // Use gemini-1.5-flash which is available in Google AI Studio free tier
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
     
     const systemPrompt = createSystemPrompt(destination)
 
@@ -101,7 +101,7 @@ export async function generateChatResponse(
     fullPrompt += `\n\nUser: ${currentMessage.content}\n\nAssistant:`
 
     // Use generateContent with proper error handling
-    console.log("Calling Gemini API with model: gemini-pro")
+    console.log("Calling Gemini API with model: gemini-1.5-flash")
     const result = await model.generateContent(fullPrompt)
     const response = await result.response
     const text = response.text()
@@ -128,7 +128,7 @@ export async function generateChatResponse(
     }
     
     if (errorMessage.includes("404") || errorMessage.includes("not found") || errorMessage.includes("models/")) {
-      throw new Error(`Model error: ${errorMessage}. Ensure you're using Google AI Studio (not Vertex AI). The gemini-pro model should be available for free tier users.`)
+      throw new Error(`Model error: ${errorMessage}. Ensure you're using Google AI Studio (not Vertex AI). The gemini-1.5-flash model should be available for free tier users.`)
     }
     
     if (errorMessage.includes("quota") || errorMessage.includes("429")) {
@@ -166,14 +166,14 @@ Now, help the user with their travel questions!`
 
 /**
  * Generate a general travel guide chat response using Gemini AI
- * Using gemini-pro model compatible with Google AI Studio free tier
+ * Using gemini-1.5-flash model compatible with Google AI Studio free tier
  */
 export async function generateGeneralTravelResponse(
   messages: Array<{ role: "user" | "assistant"; content: string }>
 ): Promise<string> {
   try {
-    // Use gemini-pro which is the most stable model for Google AI Studio free tier
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    // Use gemini-1.5-flash which is available in Google AI Studio free tier
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
     const systemPrompt = createGeneralTravelPrompt()
 
@@ -210,7 +210,7 @@ export async function generateGeneralTravelResponse(
     fullPrompt += `\n\nUser: ${currentMessage.content}\n\nAssistant:`
 
     // Use generateContent with proper error handling
-    console.log("Calling Gemini API with model: gemini-pro")
+    console.log("Calling Gemini API with model: gemini-1.5-flash")
     const result = await model.generateContent(fullPrompt)
     const response = await result.response
     const text = response.text()
@@ -238,7 +238,7 @@ export async function generateGeneralTravelResponse(
     }
     
     if (errorMessage.includes("404") || errorMessage.includes("not found") || errorMessage.includes("models/")) {
-      throw new Error(`Model error: ${errorMessage}. Ensure you're using Google AI Studio (not Vertex AI). The gemini-pro model should be available for free tier users.`)
+      throw new Error(`Model error: ${errorMessage}. Ensure you're using Google AI Studio (not Vertex AI). The gemini-1.5-flash model should be available for free tier users.`)
     }
     
     if (errorMessage.includes("quota") || errorMessage.includes("429")) {
@@ -263,7 +263,7 @@ export async function generateRecommendations(
     distance: number
   }>
 ): Promise<string[]> {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" })
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
   const prompt = `Based on the following user preferences, recommend the top 5 destinations from the list:
 
