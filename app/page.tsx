@@ -159,9 +159,9 @@ export default function HomePage() {
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <option value="">Select budget</option>
-                      <option value="low">Budget (&lt;$500)</option>
-                      <option value="medium">Mid-range ($500-$1500)</option>
-                      <option value="high">Luxury (&gt;$1500)</option>
+                      <option value="low">Budget (&lt;₹40,000)</option>
+                      <option value="medium">Mid-range (₹40,000-₹1,25,000)</option>
+                      <option value="high">Luxury (&gt;₹1,25,000)</option>
                     </select>
                   </div>
                 </div>
