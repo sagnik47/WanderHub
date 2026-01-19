@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { getPlaceDetails, getPhotoUrl } from "@/lib/google-places"
 
 export async function GET(
   request: NextRequest,
@@ -27,6 +26,9 @@ export async function GET(
     if (!destination) {
       return NextResponse.json({ error: "Destination not found" }, { status: 404 })
     }
+
+    // Dynamic import to avoid build-time evaluation
+    const { getPlaceDetails, getPhotoUrl } = await import("@/lib/google-places")
 
     // Fetch fresh details from Google Places if needed
     let placeDetails = null

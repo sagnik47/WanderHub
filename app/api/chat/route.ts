@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { generateChatResponse } from "@/lib/gemini-fixed"
 
 export async function POST(request: NextRequest) {
   try {
@@ -84,7 +83,8 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("🤖 Calling Gemini API...")
-    // Generate AI response
+    // Dynamic import to avoid build-time evaluation
+    const { generateChatResponse } = await import("@/lib/gemini-fixed")
     const response = await generateChatResponse(messages, destinationContext)
     console.log("✅ Gemini API response received, length:", response.length)
 

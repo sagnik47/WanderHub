@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateGeneralTravelResponse } from "@/lib/gemini-fixed"
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +9,8 @@ export async function POST(request: NextRequest) {
       }
     ]
 
-    // Test the Gemini API directly with gemini-pro model
+    // Dynamic import to avoid build-time evaluation
+    const { generateGeneralTravelResponse } = await import("@/lib/gemini-fixed")
     const response = await generateGeneralTravelResponse(testMessages)
 
     return NextResponse.json({ 

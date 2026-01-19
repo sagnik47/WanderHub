@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateGeneralTravelResponse } from "@/lib/gemini-fixed"
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,7 +46,8 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("🤖 Calling Gemini API for travel guide...")
-    // Generate AI response
+    // Dynamic import to avoid build-time evaluation
+    const { generateGeneralTravelResponse } = await import("@/lib/gemini-fixed")
     const response = await generateGeneralTravelResponse(messages)
     console.log("✅ Travel guide response received, length:", response.length)
 

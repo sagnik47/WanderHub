@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { testGeminiConnection } from "@/lib/gemini-fixed"
 
 export async function GET(request: NextRequest) {
   try {
+    // Dynamic import to avoid build-time evaluation
+    const { testGeminiConnection } = await import("@/lib/gemini-fixed")
     const result = await testGeminiConnection()
     
     if (result.success) {

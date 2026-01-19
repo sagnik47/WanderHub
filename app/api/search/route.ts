@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { searchPlaces, mapPlaceTypeToCategory, getPhotoUrl } from "@/lib/google-places"
 import { sortByDistance } from "@/lib/haversine"
 
 export async function GET(request: NextRequest) {
@@ -13,6 +12,9 @@ export async function GET(request: NextRequest) {
     if (!query) {
       return NextResponse.json({ error: "Query parameter is required" }, { status: 400 })
     }
+
+    // Dynamic import to avoid build-time evaluation
+    const { searchPlaces, mapPlaceTypeToCategory, getPhotoUrl } = await import("@/lib/google-places")
 
     // Search Google Places API
     const places = await searchPlaces(
