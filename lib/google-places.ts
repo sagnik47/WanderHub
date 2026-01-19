@@ -1,7 +1,12 @@
-const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY
-
-if (!GOOGLE_PLACES_API_KEY) {
-  throw new Error("GOOGLE_PLACES_API_KEY is not set")
+// Lazy initialization - only check API key when actually needed
+function getGooglePlacesApiKey() {
+  const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY
+  
+  if (!GOOGLE_PLACES_API_KEY) {
+    throw new Error("GOOGLE_PLACES_API_KEY is not set")
+  }
+  
+  return GOOGLE_PLACES_API_KEY
 }
 
 export interface GooglePlace {
@@ -45,9 +50,7 @@ export async function searchPlaces(
   location?: { lat: number; lng: number },
   radius?: number
 ): Promise<GooglePlace[]> {
-  if (!GOOGLE_PLACES_API_KEY) {
-    throw new Error("Google Places API key is not configured")
-  }
+  const GOOGLE_PLACES_API_KEY = getGooglePlacesApiKey()
 
   const params = new URLSearchParams({
     query,
@@ -80,9 +83,7 @@ export async function searchPlaces(
  * Get place details by place_id
  */
 export async function getPlaceDetails(placeId: string): Promise<GooglePlaceDetails> {
-  if (!GOOGLE_PLACES_API_KEY) {
-    throw new Error("Google Places API key is not configured")
-  }
+  const GOOGLE_PLACES_API_KEY = getGooglePlacesApiKey()
 
   const params = new URLSearchParams({
     place_id: placeId,
@@ -125,6 +126,7 @@ export async function getPlaceDetails(placeId: string): Promise<GooglePlaceDetai
  * Get photo URL from photo reference
  */
 export function getPhotoUrl(photoReference: string, maxWidth: number = 800): string {
+  const GOOGLE_PLACES_API_KEY = getGooglePlacesApiKey()
   return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photo_reference=${photoReference}&key=${GOOGLE_PLACES_API_KEY}`
 }
 

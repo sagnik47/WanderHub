@@ -1,13 +1,15 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
-const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY
-
-if (!GEMINI_API_KEY) {
-  throw new Error("GOOGLE_GEMINI_API_KEY is not set")
+// Lazy initialization - only check API key when actually needed
+function getGenAI() {
+  const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY
+  
+  if (!GEMINI_API_KEY) {
+    throw new Error("GOOGLE_GEMINI_API_KEY is not set")
+  }
+  
+  return new GoogleGenerativeAI(GEMINI_API_KEY)
 }
-
-// Initialize with the latest library version
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
 
 export interface DestinationContext {
   name: string
@@ -44,6 +46,8 @@ export async function generateChatResponse(
 ): Promise<string> {
   try {
     console.log("🚀 Starting Gemini API call with latest library...")
+    
+    const genAI = getGenAI()
     
     // Try the most common model names for the latest API
     let model;
@@ -115,6 +119,8 @@ export async function generateGeneralTravelResponse(
   try {
     console.log("🚀 Starting Travel Guide API call with latest library...")
     
+    const genAI = getGenAI()
+    
     // Try the most common model names for the latest API
     let model;
     let modelName = "";
@@ -182,6 +188,8 @@ export async function generateGeneralTravelResponse(
 export async function testGeminiConnection(): Promise<{ success: boolean; model?: string; error?: string }> {
   try {
     console.log("🔍 Testing Gemini API connection...")
+    
+    const genAI = getGenAI()
     
     const modelsToTry = [
       "gemini-1.5-flash-8b",
