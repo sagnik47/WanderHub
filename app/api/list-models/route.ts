@@ -1,17 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
-import { listAvailableModels } from "@/lib/gemini-fixed"
+import { testGeminiConnection } from "@/lib/gemini-fixed"
 
 export async function GET(request: NextRequest) {
   try {
-    const models = await listAvailableModels()
+    const result = await testGeminiConnection()
     
-    return NextResponse.json({ 
-      success: true,
-      models: models,
-      count: models.length
-    })
+    if (result.success) {
+      return NextResponse.json({ 
+        success: true,
+        workingModel: result.model,
+        message: `Gemini API is working with model: ${result.model}`
+      })
+    } else {
+      return NextResponse.json({ 
+        success: false,
+        error: result.error,
+        message: "No working Gemini models found"
+      }, { status: 500 })
+    }
   } catch (error: any) {
-    console.error("List models error:", error)
+    console.error("Test Gemini connection error:", error)
     return NextResponse.json(
       { 
         success: false,

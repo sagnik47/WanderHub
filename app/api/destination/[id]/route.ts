@@ -43,9 +43,7 @@ export async function GET(
             priceLevel: placeDetails.price_level || destination.priceLevel,
             website: placeDetails.website || destination.website,
             phoneNumber: placeDetails.formatted_phone_number || destination.phoneNumber,
-            openingHours: placeDetails.opening_hours?.weekday_text
-              ? placeDetails.opening_hours.weekday_text
-              : null,
+            openingHours: placeDetails.opening_hours?.weekday_text || undefined,
             lastAccessedAt: new Date(),
           },
         })

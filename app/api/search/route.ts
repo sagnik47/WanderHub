@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
             longitude: place.geometry.location.lng,
             rating: place.rating,
             priceLevel: place.price_level,
-            photos: place.photos ? place.photos.map((p) => p.photo_reference) : null,
+            photos: place.photos ? place.photos.map((p) => p.photo_reference) : undefined,
             category,
             lastAccessedAt: new Date(),
           },
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
             longitude: place.geometry.location.lng,
             rating: place.rating,
             priceLevel: place.price_level,
-            photos: place.photos ? place.photos.map((p) => p.photo_reference) : null,
+            photos: place.photos ? place.photos.map((p) => p.photo_reference) : undefined,
             category,
           },
         })

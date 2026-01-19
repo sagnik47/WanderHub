@@ -177,21 +177,42 @@ export async function generateGeneralTravelResponse(
 }
 
 /**
- * List available models for debugging
+ * Test Gemini API connection
  */
-export async function listAvailableModels(): Promise<any[]> {
+export async function testGeminiConnection(): Promise<{ success: boolean; model?: string; error?: string }> {
   try {
-    console.log("🔍 Listing available models...")
-    const models = await genAI.listModels()
-    console.log("✅ Successfully retrieved model list")
-    return models.map(model => ({
-      name: model.name,
-      displayName: model.displayName,
-      description: model.description,
-      supportedGenerationMethods: model.supportedGenerationMethods
-    }))
+    console.log("🔍 Testing Gemini API connection...")
+    
+    const modelsToTry = [
+      "gemini-1.5-flash-8b",
+      "gemini-1.5-flash", 
+      "gemini-1.5-pro",
+      "gemini-pro",
+      "gemini-1.0-pro"
+    ];
+    
+    for (const tryModel of modelsToTry) {
+      try {
+        console.log(`🔍 Testing model: ${tryModel}`);
+        const model = genAI.getGenerativeModel({ model: tryModel });
+        
+        // Try a simple generation to test if the model works
+        const result = await model.generateContent("Hello");
+        const response = result.response.text();
+        
+        if (response && response.trim().length > 0) {
+          console.log(`✅ Successfully tested model: ${tryModel}`);
+          return { success: true, model: tryModel };
+        }
+      } catch (modelError: any) {
+        console.log(`❌ Model ${tryModel} failed: ${modelError?.message}`);
+        continue;
+      }
+    }
+    
+    return { success: false, error: "No working models found" };
   } catch (error: any) {
-    console.error("❌ Error listing models:", error)
-    throw new Error(`Failed to list models: ${error?.message}`)
+    console.error("❌ Error testing connection:", error);
+    return { success: false, error: error?.message || "Connection test failed" };
   }
 }

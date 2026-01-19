@@ -45,6 +45,10 @@ export async function searchPlaces(
   location?: { lat: number; lng: number },
   radius?: number
 ): Promise<GooglePlace[]> {
+  if (!GOOGLE_PLACES_API_KEY) {
+    throw new Error("Google Places API key is not configured")
+  }
+
   const params = new URLSearchParams({
     query,
     key: GOOGLE_PLACES_API_KEY,
@@ -76,6 +80,10 @@ export async function searchPlaces(
  * Get place details by place_id
  */
 export async function getPlaceDetails(placeId: string): Promise<GooglePlaceDetails> {
+  if (!GOOGLE_PLACES_API_KEY) {
+    throw new Error("Google Places API key is not configured")
+  }
+
   const params = new URLSearchParams({
     place_id: placeId,
     fields: [
