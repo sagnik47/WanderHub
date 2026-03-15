@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true,
       message: response,
-      test: "Gemini API is working correctly with gemini-pro model"
+      test: "Gemini API is working correctly with dynamic model fallback"
     })
   } catch (error: any) {
     console.error("Gemini test error:", error)

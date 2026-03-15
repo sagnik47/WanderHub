@@ -11,8 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import {
   Search,
   MapPin,
-  Calendar,
-  DollarSign,
+  CalendarDays,
+  IndianRupee,
   Sparkles,
   MessageSquare,
   Bell,
@@ -25,26 +25,28 @@ import {
 
 export default function HomePage() {
   const router = useRouter()
-  const [location, setLocation] = useState("")
-  const [checkIn, setCheckIn] = useState("")
+  const [query, setQuery] = useState("")
+  const [days, setDays] = useState("3")
   const [budget, setBudget] = useState("")
   const [interests, setInterests] = useState("")
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const params = new URLSearchParams()
-    if (location) params.append("q", location)
+    if (query) params.append("q", query)
+    if (days) params.append("days", days)
+    if (budget) params.append("budget", budget)
     if (interests) params.append("interests", interests)
     router.push(`/search/results?${params.toString()}`)
   }
 
   const interestCategories = [
-    { name: "Beaches", icon: "🏖️", color: "from-blue-400 to-cyan-500" },
-    { name: "Mountains", icon: "⛰️", color: "from-green-400 to-emerald-500" },
-    { name: "Waterfalls", icon: "🌊", color: "from-cyan-400 to-blue-500" },
-    { name: "Temples", icon: "🕉️", color: "from-orange-400 to-amber-500" },
-    { name: "Historical", icon: "🏛️", color: "from-purple-400 to-pink-500" },
-    { name: "Adventure", icon: "🧗", color: "from-red-400 to-orange-500" },
+    { name: "Beaches", value: "beaches", icon: "🏖️", color: "from-blue-400 to-cyan-500" },
+    { name: "Mountains", value: "hills", icon: "⛰️", color: "from-green-400 to-emerald-500" },
+    { name: "Waterfalls", value: "waterfalls", icon: "🌊", color: "from-cyan-400 to-blue-500" },
+    { name: "Temples", value: "temples", icon: "🕉️", color: "from-orange-400 to-amber-500" },
+    { name: "Historical", value: "museums", icon: "🏛️", color: "from-purple-400 to-pink-500" },
+    { name: "Adventure", value: "attractions", icon: "🧗", color: "from-red-400 to-orange-500" },
   ]
 
   const howItWorks = [
@@ -107,6 +109,28 @@ export default function HomePage() {
             Find hidden gems, beaches, waterfalls, and more based on your interests. AI-powered travel
             recommendations tailored just for you.
           </p>
+
+          <form
+            onSubmit={handleSearch}
+            className="max-w-3xl mx-auto bg-white/95 backdrop-blur rounded-xl shadow-xl p-3 md:p-4"
+          >
+            <div className="flex flex-col md:flex-row gap-2">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search places like Beaches in Goa"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="pl-10 h-12"
+                />
+              </div>
+              <Button type="submit" size="lg" className="h-12 px-6">
+                <Search className="mr-2 h-5 w-5" />
+                Search Now
+              </Button>
+            </div>
+          </form>
         </div>
       </section>
 
@@ -117,33 +141,36 @@ export default function HomePage() {
             <CardHeader>
               <CardTitle className="text-3xl text-center">Plan Your Trip</CardTitle>
               <CardDescription className="text-center">
-                Search by location, interests, or describe what you're looking for
+                Search specific places like “Beaches in Goa” and get relevant destination results
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSearch} className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Search Places</label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-3 h-5 w-5 text-primary-600" />
                     <Input
                       type="text"
-                      placeholder="Where to?"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="e.g., Beaches in Goa"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
                       className="pl-10"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Check-in Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Trip Duration (Days)</label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-3 h-5 w-5 text-primary-600" />
+                    <CalendarDays className="absolute left-3 top-3 h-5 w-5 text-primary-600" />
                     <Input
-                      type="date"
-                      value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
+                      type="number"
+                      min={1}
+                      max={30}
+                      value={days}
+                      onChange={(e) => setDays(e.target.value)}
+                      placeholder="3"
                       className="pl-10"
                     />
                   </div>
@@ -152,7 +179,7 @@ export default function HomePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Budget</label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-3 h-5 w-5 text-primary-600" />
+                    <IndianRupee className="absolute left-3 top-3 h-5 w-5 text-primary-600" />
                     <select
                       value={budget}
                       onChange={(e) => setBudget(e.target.value)}
@@ -206,7 +233,10 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
             {interestCategories.map((category) => (
-              <Link key={category.name} href={`/search/results?q=${category.name.toLowerCase()}`}>
+              <Link
+                key={category.name}
+                href={`/search/results?q=${encodeURIComponent(`${category.name} ${query ? `in ${query}` : ""}`.trim())}&category=${encodeURIComponent(category.value)}&days=${encodeURIComponent(days || "3")}`}
+              >
                 <Card className="hover:shadow-lg transition-all cursor-pointer group">
                   <CardContent className="p-6 text-center">
                     <div

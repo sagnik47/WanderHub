@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ChatMessageContent } from "@/components/chat-message-content"
 import { MessageSquare, Send, X, Loader2 } from "lucide-react"
 
 interface Message {
@@ -112,9 +113,7 @@ export function ChatBot({ destinationId, onClose }: ChatBotProps) {
                       : "bg-gray-100 text-gray-900"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                    {message.content}
-                  </p>
+                  <ChatMessageContent content={message.content} />
                 </div>
               </div>
             ))}

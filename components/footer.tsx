@@ -62,10 +62,10 @@ export function Footer() {
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-400">© 2024 WanderHub. All rights reserved.</p>
           <div className="flex gap-6 mt-4 md:mt-0">
-            <Link href="/" className="text-sm hover:text-primary-400 transition">
+            <Link href="/privacy-policy" className="text-sm hover:text-primary-400 transition">
               Privacy Policy
             </Link>
-            <Link href="/" className="text-sm hover:text-primary-400 transition">
+            <Link href="/terms-and-conditions" className="text-sm hover:text-primary-400 transition">
               Terms of Service
             </Link>
           </div>

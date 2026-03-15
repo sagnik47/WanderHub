@@ -1,5 +1,16 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
+const MODEL_CANDIDATES = [
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
+  "gemini-pro",
+  "gemini-1.0-pro",
+]
+
+let cachedWorkingModelName: string | null = null
+
 // Lazy initialization - only check API key when actually needed
 function getGenAI() {
   const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY
@@ -9,6 +20,55 @@ function getGenAI() {
   }
   
   return new GoogleGenerativeAI(GEMINI_API_KEY)
+}
+
+function isUnsupportedModelError(error: unknown): boolean {
+  const message = String((error as any)?.message || error || "").toLowerCase()
+  return (
+    message.includes("not found") ||
+    message.includes("is not supported") ||
+    message.includes("unsupported") ||
+    message.includes("404")
+  )
+}
+
+async function generateWithModelFallback(genAI: GoogleGenerativeAI, fullPrompt: string) {
+  const modelOrder = cachedWorkingModelName
+    ? [cachedWorkingModelName, ...MODEL_CANDIDATES.filter((model) => model !== cachedWorkingModelName)]
+    : MODEL_CANDIDATES
+
+  let lastError: unknown = null
+
+  for (const modelName of modelOrder) {
+    try {
+      console.log(`🔍 Trying Gemini model: ${modelName}`)
+      const model = genAI.getGenerativeModel({ model: modelName })
+      const result = await model.generateContent(fullPrompt)
+      const text = result.response.text()
+
+      if (!text || text.trim().length === 0) {
+        throw new Error(`Empty response from Gemini model ${modelName}`)
+      }
+
+      cachedWorkingModelName = modelName
+      console.log(`✅ Gemini response generated with model: ${modelName}`)
+      return { text: text.trim(), modelName }
+    } catch (error) {
+      lastError = error
+      const message = (error as any)?.message || String(error)
+      console.log(`❌ Gemini model ${modelName} failed: ${message}`)
+
+      if (!isUnsupportedModelError(error)) {
+        throw error
+      }
+    }
+  }
+
+  if (lastError) {
+    throw lastError
+  }
+
+  throw new Error("No available Gemini models found")
 }
 
 export interface DestinationContext {
@@ -49,53 +109,15 @@ export async function generateChatResponse(
     
     const genAI = getGenAI()
     
-    // Try the most common model names for the latest API
-    let model;
-    let modelName = "";
-    
-    const modelsToTry = [
-      "gemini-1.5-flash-8b",
-      "gemini-1.5-flash", 
-      "gemini-1.5-pro",
-      "gemini-pro",
-      "gemini-1.0-pro"
-    ];
-    
-    for (const tryModel of modelsToTry) {
-      try {
-        console.log(`🔍 Trying model: ${tryModel}`);
-        model = genAI.getGenerativeModel({ model: tryModel });
-        modelName = tryModel;
-        console.log(`✅ Successfully created model: ${tryModel}`);
-        break;
-      } catch (modelError) {
-        console.log(`❌ Model ${tryModel} failed: ${(modelError as any)?.message}`);
-        continue;
-      }
-    }
-    
-    if (!model) {
-      throw new Error("No available Gemini models found. All model attempts failed.");
-    }
-    
     const systemPrompt = createSystemPrompt(destination)
     const userMessage = messages[messages.length - 1]?.content || "Hello"
     
     const fullPrompt = `${systemPrompt}\n\nUser: ${userMessage}\n\nAssistant:`
     
-    console.log(`📤 Sending request to Gemini using ${modelName}...`)
-    const result = await model.generateContent(fullPrompt)
-    console.log("📥 Received response from Gemini")
-    
-    const response = result.response
-    const text = response.text()
-    
-    if (!text || text.trim().length === 0) {
-      throw new Error("Empty response from Gemini API")
-    }
-    
+    console.log("📤 Sending request to Gemini...")
+    const { text, modelName } = await generateWithModelFallback(genAI, fullPrompt)
     console.log(`✅ Success with ${modelName}! Response length:`, text.length)
-    return text.trim()
+    return text
     
   } catch (error: any) {
     console.error("❌ Gemini API Error:", {
@@ -121,53 +143,15 @@ export async function generateGeneralTravelResponse(
     
     const genAI = getGenAI()
     
-    // Try the most common model names for the latest API
-    let model;
-    let modelName = "";
-    
-    const modelsToTry = [
-      "gemini-1.5-flash-8b",
-      "gemini-1.5-flash", 
-      "gemini-1.5-pro",
-      "gemini-pro",
-      "gemini-1.0-pro"
-    ];
-    
-    for (const tryModel of modelsToTry) {
-      try {
-        console.log(`🔍 Trying model: ${tryModel}`);
-        model = genAI.getGenerativeModel({ model: tryModel });
-        modelName = tryModel;
-        console.log(`✅ Successfully created model: ${tryModel}`);
-        break;
-      } catch (modelError) {
-        console.log(`❌ Model ${tryModel} failed: ${(modelError as any)?.message}`);
-        continue;
-      }
-    }
-    
-    if (!model) {
-      throw new Error("No available Gemini models found. All model attempts failed.");
-    }
-    
     const systemPrompt = `You are a friendly travel guide assistant for WanderHub. Help users with travel planning, destinations, and travel advice. Be helpful and concise.`
     const userMessage = messages[messages.length - 1]?.content || "Hello"
     
     const fullPrompt = `${systemPrompt}\n\nUser: ${userMessage}\n\nAssistant:`
     
-    console.log(`📤 Sending request to Gemini using ${modelName}...`)
-    const result = await model.generateContent(fullPrompt)
-    console.log("📥 Received response from Gemini")
-    
-    const response = result.response
-    const text = response.text()
-    
-    if (!text || text.trim().length === 0) {
-      throw new Error("Empty response from Gemini API")
-    }
-    
+    console.log("📤 Sending request to Gemini...")
+    const { text, modelName } = await generateWithModelFallback(genAI, fullPrompt)
     console.log(`✅ Success with ${modelName}! Response length:`, text.length)
-    return text.trim()
+    return text
     
   } catch (error: any) {
     console.error("❌ Travel Guide API Error:", {
@@ -190,35 +174,9 @@ export async function testGeminiConnection(): Promise<{ success: boolean; model?
     console.log("🔍 Testing Gemini API connection...")
     
     const genAI = getGenAI()
-    
-    const modelsToTry = [
-      "gemini-1.5-flash-8b",
-      "gemini-1.5-flash", 
-      "gemini-1.5-pro",
-      "gemini-pro",
-      "gemini-1.0-pro"
-    ];
-    
-    for (const tryModel of modelsToTry) {
-      try {
-        console.log(`🔍 Testing model: ${tryModel}`);
-        const model = genAI.getGenerativeModel({ model: tryModel });
-        
-        // Try a simple generation to test if the model works
-        const result = await model.generateContent("Hello");
-        const response = result.response.text();
-        
-        if (response && response.trim().length > 0) {
-          console.log(`✅ Successfully tested model: ${tryModel}`);
-          return { success: true, model: tryModel };
-        }
-      } catch (modelError: any) {
-        console.log(`❌ Model ${tryModel} failed: ${modelError?.message}`);
-        continue;
-      }
-    }
-    
-    return { success: false, error: "No working models found" };
+
+    const { modelName } = await generateWithModelFallback(genAI, "Hello")
+    return { success: true, model: modelName }
   } catch (error: any) {
     console.error("❌ Error testing connection:", error);
     return { success: false, error: error?.message || "Connection test failed" };

@@ -1,9 +1,10 @@
 // Lazy initialization - only check API key when actually needed
 function getGooglePlacesApiKey() {
-  const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY
+  const GOOGLE_PLACES_API_KEY =
+    process.env.GOOGLE_PLACES_SERVER_API_KEY || process.env.GOOGLE_PLACES_API_KEY
   
   if (!GOOGLE_PLACES_API_KEY) {
-    throw new Error("GOOGLE_PLACES_API_KEY is not set")
+    throw new Error("GOOGLE_PLACES_SERVER_API_KEY or GOOGLE_PLACES_API_KEY is not set")
   }
   
   return GOOGLE_PLACES_API_KEY
@@ -73,7 +74,8 @@ export async function searchPlaces(
   const data = await response.json()
 
   if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
-    throw new Error(`Google Places API error: ${data.status}`)
+    const details = data.error_message ? ` - ${data.error_message}` : ""
+    throw new Error(`Google Places API error: ${data.status}${details}`)
   }
 
   return data.results || []

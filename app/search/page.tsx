@@ -6,10 +6,11 @@ import { Navigation } from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { Search, MapPin, Star } from "lucide-react"
+import { Search, CalendarDays } from "lucide-react"
 
 export default function SearchPage() {
   const [query, setQuery] = useState("")
+  const [days, setDays] = useState("3")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -18,7 +19,7 @@ export default function SearchPage() {
     if (!query.trim()) return
 
     setLoading(true)
-    router.push(`/search/results?q=${encodeURIComponent(query)}`)
+    router.push(`/search/results?q=${encodeURIComponent(query)}&days=${encodeURIComponent(days || "3")}`)
   }
 
   return (
@@ -32,20 +33,32 @@ export default function SearchPage() {
             Discover Your Next Adventure
           </h1>
           <p className="text-center text-gray-600 mb-8">
-            Search for beaches, hills, waterfalls, temples, or describe what you're looking for
+            Search specific places like "Beaches in Goa" and get focused recommendations
           </p>
 
           <Card className="p-6">
             <form onSubmit={handleSearch}>
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-3">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     type="text"
-                    placeholder="e.g., quiet hills, hidden beaches, waterfalls near me..."
+                    placeholder="e.g., Beaches in Goa"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="pl-10 h-12 text-lg"
+                  />
+                </div>
+                <div className="relative w-40">
+                  <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={days}
+                    onChange={(e) => setDays(e.target.value)}
+                    className="pl-10 h-12"
+                    placeholder="Days"
                   />
                 </div>
                 <Button type="submit" size="lg" disabled={loading}>
@@ -57,17 +70,25 @@ export default function SearchPage() {
             <div className="mt-6">
               <p className="text-sm text-gray-500 mb-3">Popular searches:</p>
               <div className="flex flex-wrap gap-2">
-                {["beaches", "hills", "waterfalls", "temples", "hidden gems"].map((tag) => (
+                {[
+                  { label: "Beaches", value: "beaches" },
+                  { label: "Mountains", value: "hills" },
+                  { label: "Waterfalls", value: "waterfalls" },
+                  { label: "Temples", value: "temples" },
+                  { label: "Hidden Gems", value: "attractions" },
+                ].map((tag) => (
                   <Button
-                    key={tag}
+                    key={tag.value}
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      setQuery(tag)
-                      router.push(`/search/results?q=${encodeURIComponent(tag)}`)
+                      setQuery(tag.label)
+                      router.push(
+                        `/search/results?q=${encodeURIComponent(tag.label)}&category=${encodeURIComponent(tag.value)}&days=${encodeURIComponent(days || "3")}`
+                      )
                     }}
                   >
-                    {tag}
+                    {tag.label}
                   </Button>
                 ))}
               </div>
