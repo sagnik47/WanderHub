@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,15 +11,22 @@ import Link from "next/link"
 
 export default function SignInPage() {
   const router = useRouter()
+  const { status } = useSession()
   const [mode, setMode] = useState<"signin" | "signup">("signin")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [callbackUrl, setCallbackUrl] = useState("/dashboard")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasGoogleProvider, setHasGoogleProvider] = useState(false)
   useEffect(() => {
     const authError = new URLSearchParams(window.location.search).get("error")
+    const callback = new URLSearchParams(window.location.search).get("callbackUrl")
+    if (callback) {
+      setCallbackUrl(callback)
+    }
+
     if (!authError) return
 
     if (authError === "Configuration") {
@@ -28,6 +36,12 @@ export default function SignInPage() {
 
     setError("Authentication failed. Please try again.")
   }, [])
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace(callbackUrl)
+    }
+  }, [status, callbackUrl, router])
 
   useEffect(() => {
     const fetchProviders = async () => {
@@ -74,7 +88,7 @@ export default function SignInPage() {
         email,
         password,
         redirect: false,
-        callbackUrl: "/dashboard",
+        callbackUrl,
       })
 
       if (result?.error) {
@@ -82,7 +96,7 @@ export default function SignInPage() {
         return
       }
 
-      router.replace(result?.url || "/dashboard")
+      router.replace(result?.url || callbackUrl)
       router.refresh()
     } catch {
       setError("Something went wrong. Please try again.")
@@ -161,7 +175,7 @@ export default function SignInPage() {
 
           {hasGoogleProvider && (
             <Button
-              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              onClick={() => signIn("google", { callbackUrl })}
               className="w-full"
               size="lg"
               variant="outline"
